@@ -1,0 +1,24 @@
+﻿La génération a démarré 08/11/2014 11:13:17.
+     1>Projet "F:\devel\projets\ffscockpit\ffscockpit\ffscockpit.vcxproj" sur le nœud 2 (Build cible(s)).
+     1>ClCompile:
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"F:\devel\wxWidgets-3.0.2\lib\vc_dll\mswu" /I"F:\devel\wxWidgets-3.0.2\include" /I.\icones /I"C:\Program Files (x86)\Microsoft Games\Microsoft Flight Simulator X SDK\SDK\Core Utilities Kit\SimConnect SDK\inc" /I"F:\devel\wxctb-0.9\include" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D NDEBUG /D WIN32 /D _USRDLL /D __WXMSW__ /D _UNICODE /D WXUSINGDLL /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\Release\obj\\" /Fd"Win32\Release\obj\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt SimCon.cpp
+         SimCon.cpp
+     1>SimCon.cpp(74): warning C4101: 'hr' : variable locale non référencée
+     1>SimCon.cpp(189): warning C4101: 'dwData' : variable locale non référencée
+     1>SimCon.cpp(195): warning C4101: 'fData' : variable locale non référencée
+       Link:
+         E:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"F:\devel\projets\ffscockpit\Release\ffscockpit.exe" /NOLOGO /LIBPATH:"F:\devel\wxWidgets-3.0.2\lib\vc_dll" /LIBPATH:"C:\Program Files (x86)\Microsoft Games\Microsoft Flight Simulator X SDK\SDK\Core Utilities Kit\SimConnect SDK\lib" /LIBPATH:"F:\devel\wxctb-0.9\lib" wxbase30u.lib wxmsw30u_core.lib SimConnect.lib "wxctb-0.9.lib" winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"F:\devel\projets\ffscockpit\Release\ffscockpit.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"F:\devel\projets\ffscockpit\Release\ffscockpit.lib" /MACHINE:X86 /SAFESEH Win32\Release\obj\AboutBox.obj
+         Win32\Release\obj\CPaquet.obj
+         Win32\Release\obj\MainApp.obj
+         Win32\Release\obj\MainFrame.obj
+         Win32\Release\obj\SerialCtrl.obj
+         Win32\Release\obj\SimCon.obj
+     1>LINK : warning LNK4098: conflit entre la bibliothèque par défaut 'LIBCMT' et les autres bibliothèques ; utilisez /NODEFAULTLIB:library
+         Génération de code en cours
+         Fin de la génération du code
+         ffscockpit.vcxproj -> F:\devel\projets\ffscockpit\Release\ffscockpit.exe
+     1>Génération du projet "F:\devel\projets\ffscockpit\ffscockpit\ffscockpit.vcxproj" terminée (Build cible(s)).
+
+La génération a réussi.
+
+Temps écoulé 00:00:04.80

@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <WX_BASE>30</WX_BASE>
+    <UPX_PATH>F:\devel\upx\</UPX_PATH>
+    <VP_PATH>F:\devel\activeworlds\</VP_PATH>
+    <WX_LIB>vc_dll</WX_LIB>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IntDir>$(Platform)\$(Configuration)\obj\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(WXWIN)\include;.\icones;C:\Program Files %28x86%29\Microsoft Games\Microsoft Flight Simulator X SDK\SDK\Core Utilities Kit\SimConnect SDK\inc;F:\devel\wxctb-0.9\include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_USRDLL;__WXMSW__;_UNICODE;WXUSINGDLL;</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(WXWIN)\lib\$(WX_LIB);C:\Program Files %28x86%29\Microsoft Games\Microsoft Flight Simulator X SDK\SDK\Core Utilities Kit\SimConnect SDK\lib;F:\devel\wxctb-0.9\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SimConnect.lib;wxctb-0.9.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="WX_BASE">
+      <Value>$(WX_BASE)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="UPX_PATH">
+      <Value>$(UPX_PATH)</Value>
+    </BuildMacro>
+    <BuildMacro Include="VP_PATH">
+      <Value>$(VP_PATH)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="WX_LIB">
+      <Value>$(WX_LIB)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
