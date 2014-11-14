@@ -53,8 +53,8 @@ enum PQ_RESULT
 class CPaquet
 {
 	private:
-		vector<byte>	Tampon;
-		vector<BYTE>::iterator	Pointeur;
+		vector<UINT8>	Tampon;
+		vector<UINT8>::iterator	Pointeur;
 		bool			LEndian;
 		PQ_RESULT		GetVoid			(unsigned char* Data, size_t Taille);
 		PQ_RESULT		GetVoid			(size_t Taille);

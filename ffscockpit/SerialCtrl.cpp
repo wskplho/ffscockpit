@@ -93,7 +93,6 @@ void CSerialCtrl::OnUpdate(wxTimerEvent& event)
 			DataLen --;
 			if (DataLen < 1)
 			{
-				Data.Begin();
 				Buffer.push_back(Data);
 				Data.Clear();
 			}
@@ -105,18 +104,20 @@ void CSerialCtrl::OnUpdate(wxTimerEvent& event)
 void	CSerialCtrl::Send(CPaquet& Paquet)
 {
 	if (!m_bConnected) return;
-	BYTE Taille = Paquet.GetSize();
+	UINT8 Taille = Paquet.GetSize ();
 	if (Taille<1) return;
 	char* Pile = new char[Taille+1];
 	Pile[0]= Taille;
-	Paquet.Get((BYTE*)Pile+1,Taille);
+	Paquet.Get((UINT8*)Pile+1,Taille);
 	Interface->Write(Pile, Taille +1);
 }
 
 bool	CSerialCtrl::GetAvailable(CPaquet& Paquet)
 {
+	Paquet.Clear ();
 	if (Buffer.empty()) return false;
-	Paquet = (*Buffer.begin());
-	Buffer.erase(Buffer.begin());
+	vector<CPaquet>::iterator it = Buffer.begin ();
+	Paquet = *it;
+	Buffer.erase(it);
 	return true;
 }

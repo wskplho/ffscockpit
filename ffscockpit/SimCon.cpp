@@ -29,27 +29,21 @@ void CSimCon::Connect(bool Flag)
 	{
 		if (SUCCEEDED(hr=SimConnect_Open(&hSimConnect, AppName, NULL, 0, 0, 0)))
 		{
-			hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION_ADF, "ADF ACTIVE FREQUENCY:1", "Frequency BCD32", SIMCONNECT_DATATYPE_INT32);
+			hr = SimConnect_AddToDataDefinition (hSimConnect, DEFINITION_NAV, "NAV ACTIVE FREQUENCY:1", "Frequency BCD32", SIMCONNECT_DATATYPE_INT32);
 			hr = SimConnect_AddToDataDefinition(hSimConnect, DEFINITION_NAV, "NAV STANDBY FREQUENCY:1", "Frequency BCD32", SIMCONNECT_DATATYPE_INT32);
 			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_UP_FLAPS, "FLAPS_INCR");
 			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_DN_FLAPS, "FLAPS_DECR");
-			//hr = SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP_A, EVENT_UP_FLAPS);
-			//hr = SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP_A, EVENT_DN_FLAPS);
 			hr = SimConnect_SetNotificationGroupPriority(hSimConnect, GROUP_A, SIMCONNECT_GROUP_PRIORITY_HIGHEST);
 			hr = SimConnect_MenuAddItem(hSimConnect, "ffscocpkit", EVENT_MENU, NULL);
 			hr = SimConnect_MenuAddSubItem(hSimConnect, EVENT_MENU, "Config COM", EVENT_MENU_COM, NULL);
-			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_ADF_INC, "ADF_FRACT_INC_CARRY");
-			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_ADF_BIG_INC, "ADF1_WHOLE_INC");
-			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_ADF_DEC, "ADF_FRACT_DEC_CARRY");
-			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_ADF_BIG_DEC, "ADF1_WHOLE_DEC");
 			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_NAV_INC, "NAV1_RADIO_FRACT_INC_CARRY");
 			hr = SimConnect_MapClientEventToSimEvent(hSimConnect, EVENT_NAV_DEC, "NAV1_RADIO_FRACT_DEC_CARRY");
 			hr = SimConnect_MapClientEventToSimEvent (hSimConnect, EVENT_NAV_BIG_INC, "NAV1_RADIO_WHOLE_INC");
 			hr = SimConnect_MapClientEventToSimEvent (hSimConnect, EVENT_NAV_BIG_DEC, "NAV1_RADIO_WHOLE_DEC");
+			hr = SimConnect_MapClientEventToSimEvent (hSimConnect, EVENT_NAV_SWITCH, "NAV1_RADIO_SWAP");
 			// Request an event when the simulation starts
 			hr = SimConnect_SubscribeToSystemEvent(hSimConnect, EVENT_SIM_START, "SimStart");
 			
-			SimConnect_RequestDataOnSimObject(hSimConnect, REQUEST_ADF, DEFINITION_ADF, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SIM_FRAME	, SIMCONNECT_DATA_REQUEST_FLAG_CHANGED);
 			SimConnect_RequestDataOnSimObject(hSimConnect, REQUEST_NAV, DEFINITION_NAV, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SIM_FRAME, SIMCONNECT_DATA_REQUEST_FLAG_CHANGED);
 			m_bConnected = true;
 			TUpdate->Start(200);
@@ -108,29 +102,19 @@ void CSimCon::Process(SIMCONNECT_RECV *pData, DWORD cbData)
 			SIMCONNECT_RECV_SIMOBJECT_DATA *pObjData = (SIMCONNECT_RECV_SIMOBJECT_DATA*)pData;
 			switch (pObjData->dwRequestID)
 			{
-				case REQUEST_ADF:
-				{
-					float Frequency;
-					DWORD ObjectID = pObjData->dwObjectID;
-					FSDataFreq *pS = (FSDataFreq*)&pObjData->dwData;
-					Frequency = Bcd2Dec(pS->Frequence)/10.0;
-					CPaquet Data;
-					Data.AddByte((UINT8)1); //Slave
-					Data.AddByte(FFS_ADF); //Fonction
-					Data.AddFloat(Frequency);
-					SerialCtrl->Send(Data);
-					break;
-				}
 				case REQUEST_NAV:
 				{
-					float Frequency;
+					float fNAV1, fNAV2;
 					DWORD ObjectID = pObjData->dwObjectID;
-					FSDataFreq *pS = (FSDataFreq*)&pObjData->dwData;
-					Frequency = Bcd2Dec(pS->Frequence) / 10000.0;
+					FSNAVFREQ *pS = (FSNAVFREQ*)&pObjData->dwData;
+					fNAV1 = Bcd2Dec(pS->NAV1) / 10000.0;
+					fNAV2 = Bcd2Dec (pS->NAV2) / 10000.0;
+					//wxLogMessage (wxString::Format(_("Receive Nav1=%f Nav2=%f"),fNAV1,fNAV2));
 					CPaquet Data;
 					Data.AddByte ((UINT8)1); //Slave
 					Data.AddByte(FFS_NAV); //Fonction
-					Data.AddFloat(Frequency);
+					Data.AddFloat(fNAV1);
+					Data.AddFloat(fNAV2);
 					SerialCtrl->Send(Data);
 					break;
 				}
@@ -156,6 +140,11 @@ void CSimCon::Process(SIMCONNECT_RECV *pData, DWORD cbData)
 		case SIMCONNECT_RECV_ID_OPEN:
 		{
 			wxLogMessage(_("Open Event received"));
+			CPaquet Data;
+			Data.AddByte ((UINT8)0);
+			Data.AddByte (FFS_NSL);
+			Data.AddByte ((UINT8)1);
+			SerialCtrl->Send (Data);
 			break;
 		}
 		default:
@@ -189,6 +178,7 @@ void CSimCon::OnTUpdate(wxTimerEvent& WXUNUSED(event))
 	DWORD dwData;
 	while (SerialCtrl->GetAvailable(Paquet))
 	{
+		Paquet.Begin ();
 		wxString Datagram;
 		wxString sData;
 		EVENT_ID Event;
@@ -197,45 +187,39 @@ void CSimCon::OnTUpdate(wxTimerEvent& WXUNUSED(event))
 		bool bData;
 		HRESULT hr;
 		Paquet.Get(Datagram);
-		BYTE Slave;
+		wxLogMessage (Datagram);
+		UINT8 Slave;
 		Paquet.GetByte(Slave);
-		BYTE Code;
+		UINT8 Code;
 		Paquet.GetByte(Code);
 		switch (Code)
 		{
-			case FFS_LOG:
-				Paquet.GetString(sData);
-				wxLogMessage(wxString::Format(_T("Message de l'escave n°%d : "), Slave) + sData);
-				break;
-			case FFS_ADF:
-				Paquet.GetDWord(iData);
-				bData = abs(iData)>100?true:false;
-				Event = iData>0 ? (bData ? EVENT_ADF_BIG_INC : EVENT_ADF_INC) : (bData ? EVENT_ADF_BIG_DEC:EVENT_ADF_DEC);
-				hr = SimConnect_TransmitClientEvent(
-					hSimConnect,
-					SIMCONNECT_OBJECT_ID_USER,
-					Event,
-					0,
-					SIMCONNECT_GROUP_PRIORITY_HIGHEST,
-					SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY
+		case FFS_LOG:
+		{
+			if (Paquet.GetString(sData)==PQ_OK) wxLogMessage (wxString::Format (_T ("Message de l'esclave n°%d : "), Slave) + sData);
+			else wxLogMessage (wxString::Format (_T ("Message de l'esclave erreur")));
+			break;
+		}
+		case FFS_NAV:
+		{
+			Paquet.GetDWord (iData);
+			bData = abs (iData)>100 ? true : false;
+			if(iData == 0) Event = EVENT_NAV_SWITCH;
+			else Event = iData>0 ? (bData ? EVENT_NAV_BIG_INC : EVENT_NAV_INC) : (bData ? EVENT_NAV_BIG_DEC : EVENT_NAV_DEC);
+			hr = SimConnect_TransmitClientEvent(
+				hSimConnect,
+				SIMCONNECT_OBJECT_ID_USER,
+				Event,
+				0,
+				SIMCONNECT_GROUP_PRIORITY_HIGHEST,
+				SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY
 				);
-				break;
-			case FFS_NAV:
-				Paquet.GetDWord (iData);
-				bData = abs (iData)>100 ? true : false;
-				Event = iData>0 ? (bData ? EVENT_NAV_BIG_INC : EVENT_NAV_INC) : (bData ? EVENT_NAV_BIG_DEC : EVENT_NAV_DEC);
-				hr = SimConnect_TransmitClientEvent(
-					hSimConnect,
-					SIMCONNECT_OBJECT_ID_USER,
-					Event,
-					0,
-					SIMCONNECT_GROUP_PRIORITY_HIGHEST,
-					SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY
-					);
-				break;
-			default:
-				wxLogMessage(Datagram);
-				break;
+			break;
+		}
+		default:
+		{
+			break;
+		}
 		}
 		Paquet.Clear();
 	}

@@ -146,6 +146,7 @@ PQ_RESULT CPaquet::Get (unsigned char* Buffer, size_t Taille)
 // Renvoie le buffer complet avec sa taille
 PQ_RESULT CPaquet::Get(wxString& Buffer)
 {
+	Buffer.Clear ();
 	for (vector<BYTE>::iterator i = Tampon.begin(); i != Tampon.end(); ++i)
 	{
 		Buffer << wxString::Format(_T("%02X:"),*i);
