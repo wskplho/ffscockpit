@@ -256,13 +256,16 @@ PQ_RESULT CPaquet::GetFloat()
 PQ_RESULT CPaquet::GetString(wxString& Str)
 {
 	BYTE Taille;
+	char* Buffer;
 	Str=_T("");
 	if (GetByte(Taille)) return PQ_EOF;
+	Buffer = new char[Taille];
 	if (Pointeur >(Tampon.end()-Taille)) return PQ_BAD_LENGTH;
 	for (size_t i=0; i<Taille; i++)
 	{
-		Str << (wxChar)*(Pointeur++);
+		Buffer[i]= (char)*(Pointeur++);
 	}
+	Str= wxString::FromUTF8 (Buffer, Taille);
 	return PQ_OK;
 }
 

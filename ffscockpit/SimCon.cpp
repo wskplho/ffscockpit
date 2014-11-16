@@ -31,6 +31,7 @@ void CSimCon::Connect(bool Flag)
 		{
 			hr = SimConnect_AddToDataDefinition (m_hSimConnect, DEFINITION_NAV, "NAV ACTIVE FREQUENCY:1", "Frequency BCD32", SIMCONNECT_DATATYPE_INT32);
 			hr = SimConnect_AddToDataDefinition (m_hSimConnect, DEFINITION_NAV, "NAV STANDBY FREQUENCY:1", "Frequency BCD32", SIMCONNECT_DATATYPE_INT32);
+			hr = SimConnect_AddToDataDefinition (m_hSimConnect, DEFINITION_ALT, "PLANE ALTITUDE", "feet", SIMCONNECT_DATATYPE_INT32);
 			hr = SimConnect_MapClientEventToSimEvent (m_hSimConnect, EVENT_UP_FLAPS, "FLAPS_INCR");
 			hr = SimConnect_MapClientEventToSimEvent (m_hSimConnect, EVENT_DN_FLAPS, "FLAPS_DECR");
 			hr = SimConnect_SetNotificationGroupPriority (m_hSimConnect, GROUP_A, SIMCONNECT_GROUP_PRIORITY_HIGHEST);
@@ -45,6 +46,7 @@ void CSimCon::Connect(bool Flag)
 			hr = SimConnect_SubscribeToSystemEvent (m_hSimConnect, EVENT_SIM_START, "SimStart");
 			
 			SimConnect_RequestDataOnSimObject (m_hSimConnect, REQUEST_NAV, DEFINITION_NAV, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SIM_FRAME, SIMCONNECT_DATA_REQUEST_FLAG_CHANGED);
+			SimConnect_RequestDataOnSimObject (m_hSimConnect, REQUEST_ALT, DEFINITION_ALT, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND, SIMCONNECT_DATA_REQUEST_FLAG_CHANGED);
 			m_bConnected = true;
 			TUpdate->Start(200);
 			wxLogMessage(_("Connected on flight simulator"));
@@ -118,6 +120,19 @@ void CSimCon::Process(SIMCONNECT_RECV *pData, DWORD cbData)
 					SerialCtrl->Send(Data);
 					break;
 				}
+				case REQUEST_ALT:
+				{
+					UINT32 iALT;
+					DWORD ObjectID = pObjData->dwObjectID;
+					iALT = pObjData->dwData;
+					wxLogMessage (wxString::Format(_("Receive Alt=%i"),iALT));
+					CPaquet Data;
+					Data.AddByte ((UINT8)2); //Slave
+					Data.AddByte (FFS_ALT); //Fonction
+					Data.AddDWord (iALT);
+					SerialCtrl->Send (Data);
+					break;
+				}
 				default:
 				{
 					break;
@@ -170,6 +185,7 @@ void CSimCon::OnTUpdate(wxTimerEvent& WXUNUSED(event))
 {
 	::SimConnect_CallDispatch (m_hSimConnect, CSimCon::DispatchCallback, this);
 	CPaquet Paquet;
+	wxString Message;
 	DWORD dwData;
 	while (SerialCtrl->GetAvailable(Paquet))
 	{
@@ -186,12 +202,15 @@ void CSimCon::OnTUpdate(wxTimerEvent& WXUNUSED(event))
 		Paquet.GetByte(Code);
 		switch (Code)
 		{
-		case FFS_LOG:
-		{
-			if (Paquet.GetString(sData)==PQ_OK) wxLogMessage (wxString::Format (_T ("Message de l'esclave n°%d : "), Slave) + sData);
-			else wxLogMessage (wxString::Format (_T ("Message de l'esclave erreur")));
-			break;
-		}
+			case FFS_LOG:
+			{
+				if(!Slave) Message = _ ("Master Log : ");
+				else Message = wxString::Format (_T ("Slave n°%d Log : "), Slave);
+				if (Paquet.GetString(sData)==PQ_OK) Message << sData;
+				else Message << _ ("Error");
+				wxLogMessage (Message);
+				break;
+			}
 		case FFS_NAV:
 		{
 			Paquet.GetDWord (iData);

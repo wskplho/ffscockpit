@@ -48,6 +48,8 @@ void CSerialCtrl::Connect(bool Flag)
 			m_bConnected = true;
 			TUpdate->Start(200);
 			wxLogMessage(_("Connected on Arduino Serial port"));
+			InView->Clear ();
+			OutView->Clear ();
 		}
 
 	}

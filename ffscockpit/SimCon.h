@@ -56,11 +56,13 @@ static enum GROUP_ID {
 };
 
 static enum DATA_DEFINE_ID {
-	DEFINITION_NAV
+	DEFINITION_NAV,
+	DEFINITION_ALT
 };
 
 static enum DATA_REQUEST_ID {
-	REQUEST_NAV
+	REQUEST_NAV,
+	REQUEST_ALT
 };
 
 class CSimCon : public CSingleton<CSimCon>, public wxEvtHandler
