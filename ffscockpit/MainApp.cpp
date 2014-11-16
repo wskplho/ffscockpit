@@ -1,15 +1,13 @@
-// *****************************************************************************
-// *                                                                           *
-// *                             APPLICATION CLASS                             *
-// *                                                                           *
-// *****************************************************************************
-// *                                                                           *
-// *   CopyRight 2014 Neophile                                                 *
-// *   Creation          : 18/10/2014                                          *
-// *   Revision          : A                                                   *
-// *                                                                           *
-// *****************************************************************************
-
+/*!
+* \file MainApp.cpp
+* \brief Application Class
+* \author Gianni.P
+* \version 0.1
+* \date 15/11/2014
+*
+* Logiciel de couplage de simulateur de vol avec un cockpit basé sur arduino
+*
+*/
 #include "MainApp.h"
 
 #include "MainFrame.h"

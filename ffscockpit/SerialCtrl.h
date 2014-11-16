@@ -1,5 +1,4 @@
-#ifndef CSERIALCTRL_H
-#define CSERIALCTRL_H
+#pragma once
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -20,6 +19,7 @@
 #include "wx/ctb/iobase.h"
 #include "wx/ctb/serport.h"
 #include "wx/ctb/timer.h"
+#include "Singleton.h"
 #include "CPaquet.h"
 
 using namespace std;
@@ -29,12 +29,12 @@ enum CSC_EVENTS
 	CSC_UPDATE = wxID_HIGHEST
 };
 
-class CSerialCtrl : public wxEvtHandler
+class CSerialCtrl : public CSingleton<CSerialCtrl>, public wxEvtHandler
 {
+	friend class CSingleton<CSerialCtrl>;
 private:
 						CSerialCtrl();
 						~CSerialCtrl();
-static CSerialCtrl*		ptrCSerialCtrl;
 	wxTimer*			TUpdate;
 	int					Baudrate;
 	wxString			PortName;
@@ -44,21 +44,20 @@ static CSerialCtrl*		ptrCSerialCtrl;
 	vector<CPaquet>		Buffer;
 	CPaquet				Data;
 	wxConfigBase* 		pConfig;
+	wxTextCtrl*			InView;
+	wxTextCtrl*			OutView;
 
 public:
-
-	static CSerialCtrl* GetInstance();
-	void				Destroy();
 
 	bool				IsConnected(){ return m_bConnected; }
 	void				Connect(bool Flag = true);
 	void				Send(CPaquet& Paquet);
 	void				Save();
 	bool				GetAvailable(CPaquet& Paquet);
+	void				SetInView (wxTextCtrl* pTextCtrl);
+	void				SetOutView (wxTextCtrl* pTextCtrl);
 
 protected:
 	void				OnUpdate(wxTimerEvent& event);
 	wxDECLARE_EVENT_TABLE();
 };
-
-#endif

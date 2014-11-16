@@ -1,5 +1,4 @@
-#ifndef CSIMCONNECT_H
-#define CSIMCONNECT_H
+#pragma once
 
 #include "wx/wxprec.h"
 
@@ -11,6 +10,7 @@
 #include "wx/wx.h"
 #endif
 
+#include "Singleton.h"
 #include "SerialCtrl.h"
 #include "SimConnect.h"
 
@@ -63,26 +63,24 @@ static enum DATA_REQUEST_ID {
 	REQUEST_NAV
 };
 
-class CSimCon : public wxEvtHandler
+class CSimCon : public CSingleton<CSimCon>, public wxEvtHandler
 {
+	friend class CSingleton<CSimCon>;
 public:
-							CSimCon();
-							~CSimCon();
-
-	bool					IsConnected(){ return m_bConnected; }
-	void					Connect(bool Flag = true);
+	bool IsConnected(){ return m_bConnected; }
+	void Connect(bool Flag = true);
 
 private:
-	CSerialCtrl*			SerialCtrl;
-	UINT32					HornerScheme(UINT32 Num, UINT32 Divider, UINT32 Factor);
-	bool					m_bConnected;
-	HANDLE					hSimConnect;
-	wxTimer*                TUpdate;
+	CSimCon ();
+	~CSimCon ();
+	CSerialCtrl* SerialCtrl;
+	UINT32 HornerScheme(UINT32 Num, UINT32 Divider, UINT32 Factor);
+	bool m_bConnected;
+	HANDLE m_hSimConnect;
+	wxTimer* TUpdate;
 
-	void					Process(SIMCONNECT_RECV *pData, DWORD cbData);
-static void	CALLBACK		DispatchCallback(SIMCONNECT_RECV* pData, DWORD cbData, void *pContext);
-	void					OnTUpdate(wxTimerEvent& event);
+	void Process(SIMCONNECT_RECV *pData, DWORD cbData);
+static void	CALLBACK DispatchCallback(SIMCONNECT_RECV* pData, DWORD cbData, void *pContext);
+	void OnTUpdate(wxTimerEvent& event);
 	wxDECLARE_EVENT_TABLE();
 };
-
-#endif

@@ -4,10 +4,10 @@ wxBEGIN_EVENT_TABLE(CSerialCtrl, wxEvtHandler)
 	EVT_TIMER	(CSC_UPDATE,	CSerialCtrl::OnUpdate)
 wxEND_EVENT_TABLE()
 
-CSerialCtrl*	CSerialCtrl::ptrCSerialCtrl=NULL;
-
 CSerialCtrl::CSerialCtrl()
 {
+	InView = NULL;
+	OutView = NULL;
 	Interface = new wxSerialPort();
 	TUpdate = new wxTimer(this,CSC_UPDATE);
 	Buffer.clear();
@@ -20,7 +20,6 @@ CSerialCtrl::CSerialCtrl()
 
 }
 
-
 CSerialCtrl::~CSerialCtrl()
 {
 	Connect(false);
@@ -32,23 +31,6 @@ void CSerialCtrl::Save()
 	pConfig->Write(_T("/Arduino/PortName"), PortName);
 	pConfig->Write(_T("/Arduino/BaudRate"), (int)Baudrate);
 	pConfig->Flush();
-}
-
-CSerialCtrl* CSerialCtrl::GetInstance()
-{
-	if (CSerialCtrl::ptrCSerialCtrl == NULL)
-	{
-		CSerialCtrl::ptrCSerialCtrl = new CSerialCtrl();
-	}
-	return CSerialCtrl::ptrCSerialCtrl;
-}
-
-void CSerialCtrl::Destroy()
-{
-	if (CSerialCtrl::ptrCSerialCtrl != NULL)
-	{
-		delete CSerialCtrl::ptrCSerialCtrl;
-	}
 }
 
 void CSerialCtrl::Connect(bool Flag)
@@ -86,10 +68,12 @@ void CSerialCtrl::OnUpdate(wxTimerEvent& event)
 		if (DataLen < 1)
 		{
 			DataLen = byte;
+			if (InView) InView->AppendText (wxString::Format (_T ("\n%02X:"), byte));
 		}
 		else
 		{
 			Data.AddByte(byte);
+			if(InView) InView->AppendText (wxString::Format (_T ("%02X:"), byte));
 			DataLen --;
 			if (DataLen < 1)
 			{
@@ -101,7 +85,7 @@ void CSerialCtrl::OnUpdate(wxTimerEvent& event)
 	event.Skip();
 }
 
-void	CSerialCtrl::Send(CPaquet& Paquet)
+void CSerialCtrl::Send(CPaquet& Paquet)
 {
 	if (!m_bConnected) return;
 	UINT8 Taille = Paquet.GetSize ();
@@ -109,10 +93,17 @@ void	CSerialCtrl::Send(CPaquet& Paquet)
 	char* Pile = new char[Taille+1];
 	Pile[0]= Taille;
 	Paquet.Get((UINT8*)Pile+1,Taille);
+	if (OutView)
+	{
+		wxString Datagram;
+		OutView->AppendText (wxString::Format (_T ("\n%02X:"), Taille));
+		Paquet.Get (Datagram);
+		OutView->AppendText (Datagram);
+	}
 	Interface->Write(Pile, Taille +1);
 }
 
-bool	CSerialCtrl::GetAvailable(CPaquet& Paquet)
+bool CSerialCtrl::GetAvailable(CPaquet& Paquet)
 {
 	Paquet.Clear ();
 	if (Buffer.empty()) return false;
@@ -120,4 +111,14 @@ bool	CSerialCtrl::GetAvailable(CPaquet& Paquet)
 	Paquet = *it;
 	Buffer.erase(it);
 	return true;
+}
+
+void CSerialCtrl::SetInView (wxTextCtrl* pTextCtrl)
+{
+	InView = pTextCtrl;
+}
+
+void CSerialCtrl::SetOutView (wxTextCtrl* pTextCtrl)
+{
+	OutView = pTextCtrl;
 }

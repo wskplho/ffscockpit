@@ -1,5 +1,4 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#pragma once
 
 #include "wx/wxprec.h"
 
@@ -24,5 +23,3 @@ static const  wxString AppLicence = AppVersion
 +	_T("\nBuild with ") + wxVERSION_STRING;
 
 static wxString ConfPath;
-
-#endif
